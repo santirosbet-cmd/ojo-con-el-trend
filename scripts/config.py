@@ -71,7 +71,14 @@ PRODUCTO_MAP = [
     ("BLOOM",          "Bloom"),
     # ── Suplementos generales ─────────────────────────────────────────────
     ("ASHWAGAND",      "Ashwagandha"),
-    ("SHILAJIT",       "Shilajit"),
+    # Shilajit — dos presentaciones activas. Orden importa: más específico primero.
+    # Si nombras la campaña con GOMAS o ULTRA se separan automáticamente.
+    ("SHILAJIT GOMAS",  "Shilajit Gomas 60 Pcs 3000mg"),
+    ("SHILAJIT ULTRA",  "FlyNew Shilajit Ultra: Ultimate Potency"),
+    ("GOMAS SHILAJIT",  "Shilajit Gomas 60 Pcs 3000mg"),
+    ("ULTRA SHILAJIT",  "FlyNew Shilajit Ultra: Ultimate Potency"),
+    ("FLYNEW",          "FlyNew Shilajit Ultra: Ultimate Potency"),
+    ("SHILAJIT",        "Shilajit (ambas presentaciones)"),
     ("MELATONIN",      "Melatonina"),
     ("MAGNESIO",       "Magnesio Citrato"),
     ("CITRATO",        "Magnesio Citrato"),

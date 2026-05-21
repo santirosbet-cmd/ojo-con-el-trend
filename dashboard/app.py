@@ -442,9 +442,11 @@ if sel_prod:
 # Cuando filtras por producto en Meta, también filtramos las órdenes
 # por la tienda Dropi correspondiente para que el header y las métricas cuadren.
 _PROD_TIENDA: dict[str, str] = {
-    "Ashwagandha":  "ANTI-ESTRES PRO",
-    "Ashwaganha":   "ANTI-ESTRES PRO",
-    "Shilajit":     "ANTI-ESTRES PRO",
+    "Ashwagandha":                          "ANTI-ESTRES PRO",
+    "Ashwaganha":                           "ANTI-ESTRES PRO",
+    "Shilajit (ambas presentaciones)":      "ANTI-ESTRES PRO",
+    "Shilajit Gomas 60 Pcs 3000mg":         "ANTI-ESTRES PRO",
+    "FlyNew Shilajit Ultra: Ultimate Potency": "ANTI-ESTRES PRO",
     # Agrega aquí nuevos productos cuando los lances
 }
 if sel_prod and "tienda" in orders.columns:
