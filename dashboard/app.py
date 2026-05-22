@@ -261,7 +261,7 @@ with st.sidebar:
 
     # Rango de fechas
     min_d = all_orders_raw["fecha_dt"].min().date() if not all_orders_raw.empty else date(2025, 12, 1)
-    max_d = all_orders_raw["fecha_dt"].max().date() if not all_orders_raw.empty else date.today()
+    max_d = date.today()   # siempre permite hasta hoy, sin importar la última orden en DB
     date_range = st.date_input("Período", value=(min_d, max_d),
                                min_value=min_d, max_value=max_d)
     if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
@@ -274,13 +274,13 @@ with st.sidebar:
     carriers_disp  = sorted(all_orders_raw[all_orders_raw["es_prueba"]==0]["transportadora"].dropna().unique().tolist())
     estados_disp   = sorted(all_orders_raw[all_orders_raw["es_prueba"]==0]["estatus"].dropna().unique().tolist())
 
-    sel_prod    = st.multiselect("Productos", productos_disp,
+    sel_prod    = st.multiselect("🛍️ Filtrar por producto", productos_disp,
                                 default=st.session_state.get("f_producto", []),
                                 placeholder="Todos", key="ms_prod")
-    sel_carrier = st.multiselect("Transportadoras", carriers_disp,
+    sel_carrier = st.multiselect("🚚 Filtrar por carrier", carriers_disp,
                                  default=st.session_state.get("f_carrier", []),
                                  placeholder="Todas", key="ms_carrier")
-    sel_estado  = st.multiselect("Estatus", estados_disp,
+    sel_estado  = st.multiselect("📋 Filtrar por estado de orden", estados_disp,
                                  default=st.session_state.get("f_status", []),
                                  placeholder="Todos", key="ms_estado")
     # Sincronizar con session_state para que los botones de navegación funcionen
@@ -288,7 +288,7 @@ with st.sidebar:
     st.session_state.f_carrier  = sel_carrier
     st.session_state.f_status   = sel_estado
 
-    tasa = st.number_input("Tasa EUR→MXN", value=st.session_state.tasa,
+    tasa = st.number_input("💱 Tipo de cambio EUR→MXN", value=st.session_state.tasa,
                            step=0.1, format="%.2f", key="tasa_input")
     st.session_state.tasa = tasa
 
@@ -519,30 +519,26 @@ _n_perdidas = pl.get("n_perdidas", 0)
 
 # Build banner parts as a list to avoid blank lines from empty conditionals
 # (blank lines inside an HTML block break Streamlit's markdown parser)
-_banner_parts = [
-    f'<span style="font-size:1.15em;font-weight:bold">{icon} Dashboard 360</span>',
-    f'Revenue: <b>{fmt(pl["revenue"])}</b>',
-    f'Utilidad: <b>{fmt(pl["utilidad"])}</b>',
-    f'MER: <b>{pl["mer"]:.2f}×</b> {"✅" if mer_ok else "⚠️"}',
-    f'ROAS: <b>{pl["roas_real"]:.2f}×</b>',
-    f'CPA: <b>{fmt(pl["cpa_real"])}</b>',
-    f'Entrega: <b>{pl["pct_entrega"]:.1f}%</b>',
-]
-if _saldo:
-    _banner_parts.append(f'💳 Dropi: <b>${_saldo:,.0f}</b>')
-if _caja_total:
-    _banner_parts.append(f'🏦 Caja total: <b>${_caja_total:,.0f}</b>')
-if _n_perdidas > 0:
-    _banner_parts.append(
-        f'<span style="color:#dc2626;font-weight:bold">⚰️ {_n_perdidas} PERDIDAS (>{DIAS_PEDIDO_PERDIDO}d)</span>')
-_banner_parts.append(
-    f'<span style="opacity:.7;font-size:.85em">🧪 {n_pruebas_excl} pruebas excl.</span>')
+_negocio_estado = "BIEN 🎉" if (mer_ok and util_ok) else ("CUIDADO ⚠️" if util_ok else "MAL 🚨")
+_negocio_color  = "#166534" if (mer_ok and util_ok) else ("#92400e" if util_ok else "#991b1b")
+_saldo_str      = f'&nbsp;|&nbsp;💳 Saldo Dropi: <b>${_saldo:,.0f}</b>' if _saldo else ''
+_caja_str       = f'&nbsp;|&nbsp;🏦 Caja: <b>${_caja_total:,.0f}</b>' if _caja_total else ''
+_perdidas_str   = (f'&nbsp;|&nbsp;<span style="color:#dc2626;font-weight:bold">⚰️ {_n_perdidas} PERDIDAS</span>'
+                   if _n_perdidas > 0 else '')
 
-_banner_line = "&nbsp;|&nbsp;".join(_banner_parts)
 st.markdown(
-    f'<div style="background:{bcolor};padding:12px 18px;border-radius:10px;margin-bottom:10px">'
-    f'{_banner_line}'
-    f'<br><div style="margin-top:5px">{chips}</div>'
+    f'<div style="background:{bcolor};padding:14px 20px;border-radius:12px;margin-bottom:10px">'
+    f'<div style="font-size:1.5em;font-weight:900;color:{_negocio_color};line-height:1.2">'
+    f'🚦 Tu negocio está <span style="font-size:1.1em">{_negocio_estado}</span></div>'
+    f'<div style="font-size:.9em;margin-top:6px;color:#374151">'
+    f'💰 Revenue: <b>{fmt(pl["revenue"])}</b>'
+    f'&nbsp;|&nbsp;📈 Utilidad: <b>{fmt(pl["utilidad"])}</b>'
+    f'&nbsp;|&nbsp;⚡ MER: <b>{pl["mer"]:.2f}×</b> {"✅" if mer_ok else "⚠️"}'
+    f'&nbsp;|&nbsp;📦 Entregas: <b>{pl["pct_entrega"]:.1f}%</b>'
+    f'{_saldo_str}{_caja_str}{_perdidas_str}'
+    f'&nbsp;|&nbsp;<span style="opacity:.7;font-size:.85em">🧪 {n_pruebas_excl} pruebas excl.</span>'
+    f'</div>'
+    f'<div style="margin-top:7px">{chips}</div>'
     f'</div>',
     unsafe_allow_html=True,
 )
@@ -631,6 +627,9 @@ st.markdown(f"""
     Entrega {pl['pct_entrega']:.0f}% &nbsp;|&nbsp; Cancelación {pl['pct_cancel']:.0f}%<br>
     <span style="opacity:.7">Score basado en ROAS + MER + entrega + cancelación. 100 = negocio perfecto.</span>
   </div>
+</div>
+<div style="font-size:.78em;color:#475569;margin-top:4px;margin-bottom:4px;padding:0 4px">
+📊 <b>Cómo se calcula:</b> ROAS (qué tan bien rinden tus anuncios) + MER (cuánto ganas vs lo que gastas) + Entregas (% pedidos que llegan al cliente) + Cancelaciones (% que se cancelan antes de salir)
 </div>
 """, unsafe_allow_html=True)
 
@@ -2157,6 +2156,13 @@ with tab_resumen:
     st.markdown("## 📊 Resumen ejecutivo")
     st.caption("Esta pestaña te da el panorama completo de tu negocio de un vistazo. "
                "Es como el tablero de un avión: si todo va bien, no necesitas entrar a los detalles.")
+    st.markdown("""
+<div style="background:#eff6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:14px 18px;margin-bottom:16px">
+<b>👀 ¿Qué mirar primero?</b><br>
+• <b>Barras azules</b> = lo que vendiste cada semana. Barras verdes = ganancia real.<br>
+• <b>Funnel derecho</b> = de cada 100 pedidos, cuántos llegan al cliente.<br>
+• <b>MER y ROAS</b> = qué tan bien trabajan tus anuncios. Más de 2× es bueno.
+</div>""", unsafe_allow_html=True)
     if orders.empty:
         st.info("Sin órdenes para el período seleccionado.")
     else:
@@ -2838,6 +2844,7 @@ with tab_logistica:
     st.markdown("## 🚚 Logística")
     st.caption("Aquí ves el rendimiento de cada transportadora (mensajero). "
                "En COD, el mensajero es clave: si no entrega, no cobras. Esta pestaña te dice cuál funciona y cuál hay que cambiar.")
+    st.info("💡 **Novedad** = cuando hay un problema con la entrega (dirección incorrecta, cliente no disponible, etc.). Cuantas menos novedades, mejor.")
     if orders.empty:
         st.info("Sin órdenes para el período.")
     else:
@@ -2955,9 +2962,9 @@ with tab_q:
     st.markdown("## 📅 Quarters (Trimestres)")
     st.caption("Un quarter es un período de 3 meses (Q1 = enero-marzo, Q2 = abril-junio, etc.). "
                "Esta pestaña te muestra cómo ha evolucionado tu negocio cada trimestre para ver si estás creciendo.")
+    st.info("📅 Esta pestaña muestra TODO el historial desde que empezaste. El filtro de fechas no aplica aquí — sirve para ver la evolución completa del negocio.")
     # Quarters muestra TODA la historia (sin filtro de fechas, eso es correcto)
     # pero sí respeta los filtros de producto y transportadora.
-    st.caption("📅 Vista histórica completa — el filtro de fechas no aplica aquí (se muestran todos los trimestres).")
     orders_q = all_orders_raw[all_orders_raw["es_prueba"] == 0].copy()
     meta_q   = all_meta_raw.copy()
     # Aplicar filtro de transportadora
@@ -3204,6 +3211,7 @@ with tab_ordenes:
     st.markdown("## 🗂 Órdenes")
     st.caption("Lista completa de todos tus pedidos. Busca una orden específica, filtra por estado o transportadora, "
                "y descubre qué pasó con cada paquete.")
+    st.caption("Estados: ENTREGADO ✅ = cobrado | PENDIENTE CONFIRMACION ⏳ = en camino | CANCELADO ❌ = perdido | GUIA_GENERADA 📦 = salió pero sin confirmar")
     if st.session_state.show_pruebas:
         st.warning("🟡 Incluyendo órdenes de prueba")
 
