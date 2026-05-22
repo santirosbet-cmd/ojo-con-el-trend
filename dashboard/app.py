@@ -30,6 +30,141 @@ st.set_page_config(
 )
 create_db()
 
+# ── ESTILOS GLOBALES (fondo, sidebar, cards, mobile) ─────────────────────
+st.markdown("""
+<style>
+/* ── Fondo degradado suave ─────────────────────────────────────────── */
+.stApp {
+    background: linear-gradient(150deg, #eef2ff 0%, #fdf4ff 45%, #f0fdf4 100%);
+    font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+/* ── Sidebar oscuro elegante ────────────────────────────────────────── */
+[data-testid="stSidebar"] > div:first-child {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+}
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stCaption,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span { color: #cbd5e1 !important; }
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] h4 { color: #f1f5f9 !important; }
+[data-testid="stSidebar"] hr { border-color: #334155 !important; }
+[data-testid="stSidebar"] .stButton > button {
+    background: #6366f1 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.15s !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    background: #4f46e5 !important;
+    transform: translateY(-1px);
+}
+/* ── Tarjetas de métricas con sombra ────────────────────────────────── */
+[data-testid="stMetric"] {
+    background: white !important;
+    border-radius: 14px !important;
+    padding: 14px 18px !important;
+    box-shadow: 0 2px 12px rgba(99,102,241,0.10) !important;
+    border: 1px solid #e0e7ff !important;
+    transition: box-shadow 0.2s, transform 0.15s;
+}
+[data-testid="stMetric"]:hover {
+    box-shadow: 0 6px 20px rgba(99,102,241,0.18) !important;
+    transform: translateY(-2px);
+}
+/* ── Tabs con fondo blanco pill ─────────────────────────────────────── */
+[data-testid="stTabs"] [role="tablist"] {
+    background: white;
+    border-radius: 12px;
+    padding: 4px 6px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.07);
+    gap: 2px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+}
+[data-testid="stTabs"] button[role="tab"] {
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+    transition: all 0.15s !important;
+    white-space: nowrap;
+}
+[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.35) !important;
+}
+/* ── Botones primarios ──────────────────────────────────────────────── */
+.stButton > button[kind="primary"],
+.stButton > button[data-testid="baseButton-primary"] {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    color: white !important;
+}
+/* ── DataFrames más limpios ─────────────────────────────────────────── */
+[data-testid="stDataFrame"] { border-radius: 10px; overflow: hidden; }
+/* ── Esconder branding Streamlit ────────────────────────────────────── */
+#MainMenu, footer { visibility: hidden; }
+/* ── Expanders con fondo blanco ─────────────────────────────────────── */
+[data-testid="stExpander"] {
+    background: white;
+    border-radius: 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+/* ── Bloques de info/success/warning ────────────────────────────────── */
+[data-testid="stAlert"] { border-radius: 10px !important; }
+/* ════════════════ MOBILE FRIENDLY ═══════════════════════════════════ */
+@media screen and (max-width: 768px) {
+    /* Texto más compacto */
+    .stApp { font-size: 13px !important; }
+    h1 { font-size: 1.35em !important; }
+    h2 { font-size: 1.15em !important; }
+    h3 { font-size: 1.0em !important; }
+    /* Métricas más pequeñas */
+    [data-testid="stMetric"] {
+        padding: 10px 12px !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stMetric"] label { font-size: 0.72em !important; }
+    [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 1.2em !important; }
+    /* Tabs scrollable en mobile */
+    [data-testid="stTabs"] [role="tablist"] {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+    }
+    [data-testid="stTabs"] button[role="tab"] {
+        font-size: 0.75em !important;
+        padding: 4px 8px !important;
+    }
+    /* Sidebar oculto por defecto en mobile (el usuario puede abrirlo) */
+    section[data-testid="stSidebar"] {
+        min-width: 0 !important;
+    }
+    /* Columnas: stack vertical en pantallas muy pequeñas */
+    @media (max-width: 480px) {
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+    }
+    /* Gráficas full width */
+    [data-testid="stVegaLiteChart"],
+    [data-testid="stArrowVegaLiteChart"],
+    .element-container { max-width: 100% !important; }
+    /* Ocultar texto largo innecesario */
+    .stCaption { font-size: 0.72em !important; }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ── SESSION STATE ─────────────────────────────────────────────────────────
 DEFAULTS = {
     "show_pruebas": False,
@@ -259,15 +394,31 @@ with st.sidebar:
     all_orders_raw = all_orders_raw.copy()
     all_orders_raw["es_perdido"] = _perdido_mask.astype(int)
 
-    # Rango de fechas
+    # Rango de fechas — dos pickers independientes + botones rápidos
     min_d = all_orders_raw["fecha_dt"].min().date() if not all_orders_raw.empty else date(2025, 12, 1)
-    max_d = date.today()   # siempre permite hasta hoy, sin importar la última orden en DB
-    date_range = st.date_input("Período", value=(min_d, max_d),
-                               min_value=min_d, max_value=max_d)
-    if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
-        d_start, d_end = date_range
-    else:
-        d_start, d_end = min_d, max_d
+    max_d = date.today()
+
+    st.write("⚡ **Período rápido:**")
+    _pc1, _pc2, _pc3, _pc4 = st.columns(4)
+    if _pc1.button("7d",   use_container_width=True, key="btn_7d"):
+        st.session_state["_pre_start"] = max_d - timedelta(days=7)
+        st.session_state["_pre_end"]   = max_d; st.rerun()
+    if _pc2.button("30d",  use_container_width=True, key="btn_30d"):
+        st.session_state["_pre_start"] = max_d - timedelta(days=30)
+        st.session_state["_pre_end"]   = max_d; st.rerun()
+    if _pc3.button("90d",  use_container_width=True, key="btn_90d"):
+        st.session_state["_pre_start"] = max_d - timedelta(days=90)
+        st.session_state["_pre_end"]   = max_d; st.rerun()
+    if _pc4.button("Todo", use_container_width=True, key="btn_todo"):
+        st.session_state["_pre_start"] = min_d
+        st.session_state["_pre_end"]   = max_d; st.rerun()
+
+    d_start = st.date_input("📅 Desde", value=st.session_state.get("_pre_start", min_d),
+                            min_value=min_d, max_value=max_d, key="d_s")
+    d_end   = st.date_input("📅 Hasta", value=st.session_state.get("_pre_end",   max_d),
+                            min_value=min_d, max_value=max_d, key="d_e")
+    if d_start > d_end:
+        d_end = d_start
 
     # Filtros de dimensión
     productos_disp = sorted(all_meta_raw["producto"].dropna().unique().tolist())
